@@ -151,7 +151,8 @@ decode_record_content(Bin, document)->
     Ret -> Ret
   catch
     E:E1 ->
-      {E,E1,Bin}
+      {ErrorName, Contex} = E1,
+      {E,ErrorName, binary_to_list(Contex)}
   end;
 decode_record_content(Bin, raw) ->
   Bin;

@@ -26,6 +26,8 @@
          record_delete/4,
          query_async/4,
          query_sync/3,
+         command/2,
+         script/2,
          tx_commit/4]).
 
 -include("../include/odi.hrl").
@@ -141,13 +143,21 @@ record_update(C, {ClusterId, ClusterPosition}, RecordContent, RecordVersion, Rec
 record_delete(C, {ClusterId, ClusterPosition}, RecordVersion, Mode) ->
     to_bool(call(C, {record_delete, ClusterId, ClusterPosition, RecordVersion, Mode})).
 
-%Syncronous SQL query.
-query_sync(C, QueryText, Limit) ->
-    call(C, {command_sync, QueryText, Limit}).
+%Syncronous SQL query (SELECT or TRAVERSE).
+query_sync(C, SQL, Limit) ->
+    call(C, {command_sync, SQL, Limit, select}).
 
 %Asyncronous SQL query, not fully implemented
-query_async(C, QueryText, Limit, FetchPlan) ->
-    call(C, {command_async, QueryText, Limit, FetchPlan}).
+query_async(C, SQL, Limit, FetchPlan) ->
+    call(C, {command_async, SQL, Limit, FetchPlan}).
+
+%Syncronous SQL command.
+command(C, SQL) ->
+    call(C, {command_sync, SQL, -1, command}).
+
+%Syncronous SQL command.
+script(C, JavaScript) ->
+    call(C, {command_sync, JavaScript, -1, script}).
 
 %Commits a transaction. This operation flushes all the pending changes to the server side.
 %   Operations: [{OperationType, ClusterId, ClusterPosition, RecordType}]

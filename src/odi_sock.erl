@@ -296,7 +296,7 @@ command({record_update, ClusterId, ClusterPosition, RecordContent, RecordVersion
         odi_bin:switch(Mode == sync, 0, 1)]),
     {noreply, State};
 
-%Delete a record by its RecordID. During the optimistic transaction the record will be deleted only if the versions match. 
+%Delete a record by its RecordID. During the optimistic transaction the record will be deleted only if the versions match.
 %Returns true if has been deleted otherwise false.
 %   Request:  (cluster-id:short)(cluster-position:long)(record-version:int)(mode:byte)
 %   Response: (payload-status:byte)
@@ -322,9 +322,15 @@ command({command_async, QueryText, Limit, FetchPlan}, State) ->
         [$a, CommandPayload]),
     {noreply, State};
 
-command({command_sync, QueryText, Limit}, State) ->
+command({command_sync, QueryText, Limit, QueryType}, State) ->
+    ClassName = case QueryType of
+        select -> "com.orientechnologies.orient.core.sql.query.OSQLSynchQuery";
+        command -> "com.orientechnologies.orient.core.sql.OCommandSQL";
+        script -> "com.orientechnologies.orient.core.command.script.OCommandScript"
+    end,
+    %TODO: different SQL Script command payload
     CommandPayload = odi_bin:encode([string, string, integer, rawbytes],
-        ["com.orientechnologies.orient.core.sql.query.OSQLSynchQuery",
+        [ClassName,
         QueryText, Limit, <<0:?o_int, 0:?o_int, 0:?o_int>>]),
     sendRequest(State, ?O_COMMAND,
         [byte, bytes],
